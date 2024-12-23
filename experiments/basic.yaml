@@ -1,0 +1,37 @@
+CUDNN:
+  BENCHMARK: True
+  DETERMINISTIC: False
+  ENABLED: True
+DATASET:
+  JSON: './data/RA_hand_biobert.json'
+  DATA_FORMAT: json
+  ROOT: 
+  TEST_SET: test
+  TRAIN_SET: train
+DATA_DIR: 
+DEBUG:
+  DEBUG: False
+GPUS: 0
+LOG_DIR: 
+LORA:
+  ALPHA: 16
+  DROPOUT: 0.1
+  RANK: 8
+MODEL:
+  EXTRA: None
+  INIT_WEIGHTS: True
+  NAME: "dmis-lab/biobert-base-cased-v1.1-mnli"
+  PRETRAINED: "dmis-lab/biobert-base-cased-v1.1-mnli"
+OUTPUT_DIR: 
+PHASE: train
+TEST:
+  BATCH_SIZE_PER_GPU: 16
+TRAIN:
+  BATCH_SIZE_PER_GPU: 16
+  LR: 0.0001
+  LR_FACTOR: 0.1
+  LR_STEP: [10, 20]
+  NUM_EPOCHS: 60
+  OPTIMIZER: adam
+  SHUFFLE: True
+WORKERS: 4
