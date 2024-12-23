@@ -11,8 +11,6 @@ from __future__ import print_function
 import os
 
 from yacs.config import CfgNode as CN
-# from .model import MODEL_EXTRAS
-from .model_cfg import MODEL_EXTRAS
 
 _C = CN()
 
@@ -31,83 +29,63 @@ _C.CUDNN.ENABLED = True
 
 # common params for NETWORK
 _C.MODEL = CN()
-_C.MODEL.NAME = 'FCN'
-_C.MODEL.EXTRA = MODEL_EXTRAS[_C.MODEL.NAME]
+_C.MODEL.NAME = 'dmis-lab/biobert-base-cased-v1.1-mnli'
+_C.MODEL.EXTRA = None
 _C.MODEL.INIT_WEIGHTS = True
-_C.MODEL.PRETRAINED = ''
-
-# if you want to add new params for NETWORK, Init new Params below!
+_C.MODEL.PRETRAINED = 'dmis-lab/biobert-base-cased-v1.1-mnli'
+_C.MODEL.NUM_LABELS = 6
 
 # DATASET related params
 _C.DATASET = CN()
 _C.DATASET.ROOT = ''
+_C.DATASET.JSON = ''
 _C.DATASET.TRAIN_SET = 'train'
-_C.DATASET.TEST_SET = 'valid'
-_C.DATASET.DATA_FORMAT = 'jpg'
+_C.DATASET.TEST_SET = 'test'
+_C.DATASET.DATA_FORMAT = 'csv'
 
 # training data augmentation
-# Implement your data augmentation
+# Add augmentation settings if required
 
 # train
 _C.TRAIN = CN()
 
 _C.TRAIN.LR_FACTOR = 0.1
-_C.TRAIN.LR_STEP = [90, 110]
-_C.TRAIN.LR = 0.001
+_C.TRAIN.LR_STEP = [10, 20]
+_C.TRAIN.LR = 0.0001
 
 _C.TRAIN.OPTIMIZER = 'adam'
-_C.TRAIN.MOMENTUM = 0.9
-_C.TRAIN.WD = 0.0001
-_C.TRAIN.NESTEROV = False
-_C.TRAIN.GAMMA1 = 0.99
-_C.TRAIN.GAMMA2 = 0.0
-
-_C.TRAIN.BEGIN_EPOCH = 0
-_C.TRAIN.END_EPOCH = 140
-
-_C.TRAIN.RESUME = False
-_C.TRAIN.CHECKPOINT = ''
-
-_C.TRAIN.BATCH_SIZE_PER_GPU = 32
+_C.TRAIN.BATCH_SIZE_PER_GPU = 16
+_C.TRAIN.NUM_EPOCHS = 10
 _C.TRAIN.SHUFFLE = True
+
+# LoRA specific settings
+_C.LORA = CN()
+_C.LORA.RANK = 8
+_C.LORA.ALPHA = 16
+_C.LORA.DROPOUT = 0.1
+_C.LORA.TARGET_MODULES = ["query", "value"]
 
 # testing
 _C.TEST = CN()
-
-# size of images for each device
-_C.TEST.BATCH_SIZE_PER_GPU = 32
+_C.TEST.BATCH_SIZE_PER_GPU = 16
 
 # debug
 _C.DEBUG = CN()
 _C.DEBUG.DEBUG = False
 
-
 def update_config(cfg, args):
     cfg.defrost()
     cfg.merge_from_file(args.cfg)
-    cfg.merge_from_list(args.opts)
+    # cfg.merge_from_list(args.opts)
 
-    if args.modelDir:
-        cfg.OUTPUT_DIR = args.modelDir
+    # if args.modelDir:
+    #     cfg.OUTPUT_DIR = args.modelDir
 
-    if args.logDir:
-        cfg.LOG_DIR = args.logDir
+    if args.log_dir:
+        cfg.LOG_DIR = args.log_dir
 
-    if args.dataDir:
-        cfg.DATA_DIR = args.dataDir
-
-    # cfg.DATASET.ROOT = os.path.join(
-    #     cfg.DATA_DIR, cfg.DATASET.ROOT
-    # )
-    #
-    # cfg.MODEL.PRETRAINED = os.path.join(
-    #     cfg.DATA_DIR, cfg.MODEL.PRETRAINED
-    # )
-
-    # if cfg.TEST.MODEL_FILE:
-    #     cfg.TEST.MODEL_FILE = os.path.join(
-    #         cfg.DATA_DIR, cfg.TEST.MODEL_FILE
-    #     )
+    if args.data_dir:
+        cfg.DATA_DIR = args.data_dir
 
     cfg.freeze()
 
