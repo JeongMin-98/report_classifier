@@ -129,7 +129,7 @@ dmypy.json
 
 .idea/
 
-
+logs/events.out.tfevents.*
 checkpoint/
 data/
 
