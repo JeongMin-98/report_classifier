@@ -1,5 +1,10 @@
 # Using BioBert and LoRA to classify report
 
+### Setup
+```shell
+bash setup.sh
+```
+
 ### HuggingFace Login
 ```
 huggingface-cli login
