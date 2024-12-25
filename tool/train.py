@@ -129,10 +129,10 @@ def main():
     json_path = cfg.DATASET.JSON
     dataset = DiagnosisTextDataset(json_path, tokenizer)
 
-    # Balance the dataset (optional)
-    balanced_dataset = balance_dataset(dataset)
+    # # Balance the dataset (optional)
+    # balanced_dataset = balance_dataset(dataset)
     train_dataloader, val_dataloader, _ = split_dataset_parallel(
-        balanced_dataset,
+        dataset,
         batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU,
         num_workers=cfg.WORKERS
     )
@@ -171,21 +171,21 @@ def main():
 
     optimizer_no_lora = torch.optim.Adam(model_no_lora.parameters(), lr=cfg.TRAIN.LR)
 
-    trainer_no_lora = Trainer(
-        model=model_no_lora,
-        tokenizer=tokenizer,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        criterion=criterion,
-        optimizer=optimizer_no_lora,
-        cfg=cfg,
-        device=device
-    )
-
-    trainable_params_no_lora, total_params_no_lora = count_trainable_parameters(model_no_lora)
-    logger.info(f"No LoRA - Trainable Parameters: {trainable_params_no_lora}/{total_params_no_lora}")
-
-    trainer_no_lora.train(cfg.TRAIN.NUM_EPOCHS)
+    # trainer_no_lora = Trainer(
+    #     model=model_no_lora,
+    #     tokenizer=tokenizer,
+    #     train_dataloader=train_dataloader,
+    #     val_dataloader=val_dataloader,
+    #     criterion=criterion,
+    #     optimizer=optimizer_no_lora,
+    #     cfg=cfg,
+    #     device=device
+    # )
+    #
+    # trainable_params_no_lora, total_params_no_lora = count_trainable_parameters(model_no_lora)
+    # logger.info(f"No LoRA - Trainable Parameters: {trainable_params_no_lora}/{total_params_no_lora}")
+    #
+    # trainer_no_lora.train(cfg.TRAIN.NUM_EPOCHS)
 
 if __name__ == "__main__":
     main()

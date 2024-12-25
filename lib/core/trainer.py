@@ -6,9 +6,11 @@
 
 import os
 import torch
+import logging
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+logger = logging.getLogger(__name__)
 
 class Trainer:
     def __init__(self, model, tokenizer, train_dataloader, val_dataloader, criterion, optimizer, cfg, device, log_dir="logs", save_dir="checkpoints"):
@@ -45,7 +47,7 @@ class Trainer:
         Args:
             num_epochs (int): Number of epochs to train.
         """
-        print("Starting training...")
+        logger.info("Starting training...")
         best_pert = -1
         for epoch in range(1, num_epochs + 1):
             self.model.train()
@@ -70,7 +72,7 @@ class Trainer:
                 progress_bar.set_postfix({"loss": loss.item()})
 
             avg_train_loss = total_loss / len(self.train_dataloader)
-            print(f"Epoch {epoch}/{num_epochs}, Training Loss: {avg_train_loss:.4f}")
+            logger.info(f"Epoch {epoch}/{num_epochs}, Training Loss: {avg_train_loss:.4f}")
             self.writer.add_scalar("Loss/Train", avg_train_loss, epoch)
 
             # Validate at the end of each epoch
@@ -80,7 +82,7 @@ class Trainer:
                 # Save checkpoint
                 self.save_checkpoint(epoch, val_loss, val_accuracy)
             
-            print(f"Epoch {epoch}/{num_epochs}, Validation Loss: {val_loss:.4f}, Accuracy: {val_accuracy:.4f}")
+            logger.info(f"Epoch {epoch}/{num_epochs}, Validation Loss: {val_loss:.4f}, Accuracy: {val_accuracy:.4f}")
 
         self.save_checkpoint(self.cfg.TRAIN.NUM_EPOCHS, val_loss, val_accuracy)
             
@@ -94,7 +96,7 @@ class Trainer:
             float: Validation loss.
             float: Validation accuracy.
         """
-        print("Starting validation...")
+        logger.info("Starting validation...")
         self.model.eval()
         total_loss = 0
         correct = 0
@@ -145,5 +147,5 @@ class Trainer:
             "val_loss": val_loss,
             "val_accuracy": val_accuracy
         }, checkpoint_path)
-        print(f"Checkpoint saved at {checkpoint_path}")
+        logger.info(f"Checkpoint saved at {checkpoint_path}")
 
