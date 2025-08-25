@@ -2,38 +2,45 @@ import os
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from peft import LoraConfig, get_peft_model
-# from config import cfg
 
 def load_best_model_with_lora(model, checkpoint_path, device, lora_config):
     """
     Load the best LoRA model checkpoint.
     Args:
         model (nn.Module): The base model to load the checkpoint into.
-        optimizer (Optimizer): The optimizer to load the checkpoint into.
         checkpoint_path (str): Path to the best model checkpoint.
         device (torch.device): Device to map the model and optimizer.
         lora_config (LoraConfig): LoRA configuration for the model.
     Returns:
         model (nn.Module): The model with loaded weights.
-        optimizer (Optimizer): The optimizer with loaded state.
+        optimizer (Optimizer): The optimizer with loaded state, if available.
         int: The epoch number from the checkpoint.
         dict: Additional checkpoint data.
     """
     # Apply LoRA to the model
+    model = model.to(device)
     model = get_peft_model(model, lora_config)
     optimizer = torch.optim.Adam(model.parameters())
 
     # Load the checkpoint
+    if not os.path.exists(checkpoint_path):
+        raise FileNotFoundError(f"Checkpoint file not found at {checkpoint_path}")
+
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
     # Load model and optimizer states
-    model.load_state_dict(checkpoint["model_state_dict"])
-    optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+    model.load_state_dict(checkpoint["model_state_dict"], strict=False)
+
+    if "optimizer_state_dict" in checkpoint:
+        try:
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        except ValueError as e:
+            print(f"Warning: Optimizer state could not be loaded: {e}")
 
     # Retrieve epoch and additional metadata
-    epoch = checkpoint["epoch"]
-    val_loss = checkpoint["val_loss"]
-    val_accuracy = checkpoint["val_accuracy"]
+    epoch = checkpoint.get("epoch", -1)
+    val_loss = checkpoint.get("val_loss", float("inf"))
+    val_accuracy = checkpoint.get("val_accuracy", 0.0)
 
     print(f"Loaded LoRA model from {checkpoint_path}")
     print(f"Epoch: {epoch}, Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}")
@@ -50,7 +57,6 @@ base_model = AutoModelForSequenceClassification.from_pretrained(
     model_name,
     num_labels=6,  # Adjust based on your task
     ignore_mismatched_sizes=True
-
 )
 
 # Define LoRA configuration
@@ -61,7 +67,6 @@ lora_config = LoraConfig(
     lora_dropout=0.1  # Dropout rate for LoRA
 )
 
-# Initialize optimizer
 # Load best model with LoRA
 checkpoint_path = "./checkpoints/best_model.pth.tar"
 model, optimizer, epoch, checkpoint = load_best_model_with_lora(
@@ -72,12 +77,9 @@ model, optimizer, epoch, checkpoint = load_best_model_with_lora(
 model.to(device)
 model.eval()
 
-# Inference example
-# OA
-# sample_text = "degenerative change observed in the MTP joint."
-# ref.Prev
-# sample_text = "No significant interval change since last study"
+# Example input text
 sample_text = "joint space narrowing, erosions, partial fusion of radiocarpal, ulnocarpal, intercarpal, CMC joints, both \nerosion at Rt 2nd MP base \n-> RA involvement \n"
+
 # Tokenize input
 inputs = tokenizer(
     sample_text,
@@ -94,7 +96,9 @@ inputs = {key: val.to(device) for key, val in inputs.items()}
 with torch.no_grad():
     outputs = model(**inputs)
     predictions = torch.sigmoid(outputs.logits)
+
+# Convert predictions to binary labels
 preds = predictions > 0.7
 
 print(f"Predictions: {predictions}")
-print(f"pred : {preds}")
+print(f"Binary Labels: {preds}")

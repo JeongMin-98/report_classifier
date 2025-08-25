@@ -148,4 +148,3 @@ class Trainer:
             "val_accuracy": val_accuracy
         }, checkpoint_path)
         logger.info(f"Checkpoint saved at {checkpoint_path}")
-
